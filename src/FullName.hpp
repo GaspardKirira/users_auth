@@ -15,6 +15,8 @@ ADASTRA_EXCEPTION(InvalidFullNameException, "Invalid FullName", ErrorCode::Inval
 #include <algorithm> // Pour std::adjacent_find
 
 // Validator pour valider un nom complet
+// Dans FullNameValidator.hpp
+
 class FullNameValidator
 {
 public:
@@ -53,41 +55,36 @@ public:
 private:
     static bool isValidFormat(const std::string &fullname)
     {
-        // Utilisation d'une regex pour valider le format : lettres, espaces, apostrophes et tirets
-        const std::regex fullNamePattern("^[a-zA-Zàáâäãåçéèêëíîïóôöõúùûüñ]+(?:[ '-][a-zA-Zàáâäãåçéèêëíîïóôöõúùûüñ]+)*$");
-        return std::regex_match(fullname, fullNamePattern);
+        // Vérifie qu'il y a au moins deux mots séparés par un espace
+        size_t firstSpace = fullname.find(' ');
+        if (firstSpace == std::string::npos || firstSpace == fullname.size() - 1)
+        {
+            return false; // Pas de deuxième mot
+        }
+
+        return true;
     }
 
     static bool isValidCharacters(const std::string &fullname)
     {
-        // Expression régulière qui permet les caractères accentués, les espaces, les apostrophes et les tirets
+        // Autorise uniquement les lettres, accents, espaces, apostrophes et tirets
         const std::regex pattern("^[a-zA-Zàáâäãåçéèêëíîïóôöõúùûüñ' -]+$");
-
         return std::regex_match(fullname, pattern);
     }
 
     static std::string removeExtraSpaces(const std::string &fullname)
     {
-        std::string result;
-        bool inSpace = false;
+        // Remplace plusieurs espaces consécutifs par un seul espace
+        std::regex spacePattern("\\s+");
+        std::string result = std::regex_replace(fullname, spacePattern, " ");
 
-        // Parcourt chaque caractère et supprime les espaces multiples
-        for (char c : fullname)
-        {
-            if (c != ' ' || !inSpace)
-            {
-                result.push_back(c);
-            }
-            inSpace = (c == ' ');
-        }
-
-        // Trim des espaces au début et à la fin
+        // Trim (supprimer les espaces au début et à la fin)
         size_t start = result.find_first_not_of(' ');
         size_t end = result.find_last_not_of(' ');
 
         if (start == std::string::npos || end == std::string::npos)
         {
-            return "";
+            return ""; // Retourne une chaîne vide si tout est composé d'espaces
         }
 
         return result.substr(start, end - start + 1);
