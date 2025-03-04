@@ -1,5 +1,5 @@
 #include "Email.hpp"
-#include "Phone.hpp"
+#include "PhoneNumber.hpp"
 #include <iostream>
 
 int main()
@@ -12,9 +12,9 @@ int main()
 
         std::cout << "L'email valide est : " << validEmail << std::endl;
 
-        Phone p("+243991324430");
+        PhoneNumber p("+243991324430");
 
-        std::string phone = p.getPhone();
+        std::string phone = p.getPhoneNumber();
         std::cout << "Le numero de telephone valide est : " << phone << std::endl;
     }
     catch (const BaseException &e)
