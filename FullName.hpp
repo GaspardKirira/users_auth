@@ -2,14 +2,13 @@
 #define FULLNAME_HPP
 
 #include <string>
+#include <Adastra/validator.hpp>
 #include <Adastra/Exception.hpp>
-#include <regex>
+#include <iostream>
+#include <cctype> // pour isalpha, etc.
+#include <locale> // pour utiliser la locale et les caractères Unicode
 
 ADASTRA_EXCEPTION(InvalidFullNameException, "Invalid FullName", ErrorCode::InvalidInput)
-
-#include <string>
-#include <regex>
-#include <iostream>
 
 class FullNameValidator
 {
@@ -50,11 +49,19 @@ public:
     }
 
 private:
-    static const std::regex validCharactersRegex;
-
     static bool isValidCharacters(const std::string &fullname)
     {
-        return std::regex_match(fullname, validCharactersRegex);
+        // Vérifier chaque caractère
+        for (char c : fullname)
+        {
+            // Si le caractère n'est ni une lettre, ni un espace, ni un tiret, ni une apostrophe
+            // Ou s'il n'est pas un caractère Unicode valide, on retourne false
+            if (!(std::isalpha(c, std::locale()) || c == ' ' || c == '\'' || c == '-'))
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     static bool isValidFormat(const std::string &fullname)
@@ -70,15 +77,31 @@ private:
 
     static std::string removeExtraSpaces(const std::string &fullname)
     {
-        std::string result = std::regex_replace(fullname, std::regex("\\s+"), " ");
-        result.erase(0, result.find_first_not_of(' '));
-        result.erase(result.find_last_not_of(' ') + 1);
+        std::string result;
+        bool inSpaces = false;
+
+        for (char c : fullname)
+        {
+            if (c != ' ' || !inSpaces)
+            {
+                result += c;
+            }
+            inSpaces = (c == ' ');
+        }
+
+        // Supprimer les espaces au début et à la fin
+        if (!result.empty() && result[0] == ' ')
+        {
+            result.erase(0, 1);
+        }
+        if (!result.empty() && result[result.size() - 1] == ' ')
+        {
+            result.erase(result.size() - 1, 1);
+        }
+
         return result;
     }
 };
-
-// Définition de l'expression régulière statique
-const std::regex FullNameValidator::validCharactersRegex("^[a-zA-Zàáâäãåçéèêëíîïóôöõúùûüñ' -]+$");
 
 class FullName
 {

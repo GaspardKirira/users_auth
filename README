@@ -1,0 +1,2 @@
+export LD_LIBRARY_PATH=/home/softadastra/adastra/libs:$LD_LIBRARY_PATH
+./prog

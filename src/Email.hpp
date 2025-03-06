@@ -2,7 +2,6 @@
 #define EMAIL_HPP
 
 #include <string>
-#include <Adastra/validator.hpp>
 #include <Adastra/Exception.hpp>
 #include <regex>
 #include <iostream>
@@ -34,7 +33,7 @@ private:
     static bool isValidFormat(const std::string &email)
     {
         // Regex pour valider le format général d'un email
-        const std::regex pattern(R"(^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$)");
+        static const std::regex pattern(R"(^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$)");
         return std::regex_match(email, pattern);
     }
 

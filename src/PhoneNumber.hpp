@@ -2,10 +2,10 @@
 #define PHONE_HPP
 
 #include <string>
-#include <Adastra/validator.hpp>
 #include <Adastra/Exception.hpp>
 #include <regex>
 #include <iostream>
+#include <algorithm>
 
 ADASTRA_EXCEPTION(InvalidPhoneNumberException, "Invalid Phone Number", ErrorCode::InvalidInput)
 
@@ -19,19 +19,16 @@ public:
             throw InvalidPhoneNumberException("Le numéro de téléphone ne peut pas être vide.");
         }
 
-        // Vérifier que le numéro commence par '+' et un code pays
         if (!isValidFormat(phoneNumber))
         {
             throw InvalidPhoneNumberException("Le numéro de téléphone est invalide. Il doit commencer par '+' suivi du code pays.");
         }
 
-        // Vérifier que le numéro est composé uniquement de chiffres après le code pays (en ignorant les espaces)
         if (!isValidNumber(phoneNumber))
         {
             throw InvalidPhoneNumberException("Le numéro de téléphone ne contient que des chiffres après le code pays.");
         }
 
-        // Vérifier que le numéro a une longueur raisonnable
         if (!isValidLength(phoneNumber))
         {
             throw InvalidPhoneNumberException("Le numéro de téléphone a une longueur invalide.");
@@ -41,31 +38,25 @@ public:
 private:
     static bool isValidFormat(const std::string &phoneNumber)
     {
-        // Vérifie que le numéro commence par '+' et est suivi d'un code pays et du numéro local
-        const std::regex pattern(R"(^\+(\d{1,4})\s*(\d{7,15})$)");
+        static const std::regex pattern(R"(^\+(\d{1,4})\s*(\d{7,15})$)");
         return std::regex_match(phoneNumber, pattern);
     }
 
     static bool isValidNumber(const std::string &phoneNumber)
     {
-        // Le numéro après le code pays doit être composé uniquement de chiffres
         size_t plusPos = phoneNumber.find('+');
         std::string numberPart = phoneNumber.substr(plusPos + 1);
 
-        // Supprimer les espaces avant de vérifier si les caractères sont des chiffres
         numberPart.erase(std::remove_if(numberPart.begin(), numberPart.end(), ::isspace), numberPart.end());
 
-        // Vérifier que tous les caractères après le '+' sont des chiffres
         return std::all_of(numberPart.begin(), numberPart.end(), ::isdigit);
     }
 
     static bool isValidLength(const std::string &phoneNumber)
     {
-        // Vérifie la longueur raisonnable du numéro
         size_t plusPos = phoneNumber.find('+');
         std::string numberPart = phoneNumber.substr(plusPos + 1);
 
-        // Supprimer les espaces avant de mesurer la longueur
         numberPart.erase(std::remove_if(numberPart.begin(), numberPart.end(), ::isspace), numberPart.end());
 
         return numberPart.length() >= 10 && numberPart.length() <= 15;
@@ -75,10 +66,18 @@ private:
 class PhoneNumber
 {
 public:
-    PhoneNumber(const std::string &phoneNumber) : m_phoneNumber(phoneNumber)
+    PhoneNumber(const std::string &phoneNumber)
     {
-        // Valide le numéro de téléphone au moment de la création de l'objet
-        PhoneNumberValidator::validate(phoneNumber);
+        try
+        {
+            PhoneNumberValidator::validate(phoneNumber);
+            m_phoneNumber = phoneNumber;
+        }
+        catch (const InvalidPhoneNumberException &e)
+        {
+            std::cerr << "Erreur de validation : " << e.what() << std::endl;
+            m_phoneNumber = "";
+        }
     }
 
     const std::string &getPhoneNumber() const
