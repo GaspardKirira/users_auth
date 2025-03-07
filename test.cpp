@@ -1,13 +1,20 @@
-#ifndef PHONE_HPP
-#define PHONE_HPP
-
-#include <string>
-#include <Adastra/Exception.hpp>
-#include <regex>
 #include <iostream>
+#include <regex>
 #include <algorithm>
+#include <stdexcept>
 
-ADASTRA_EXCEPTION(InvalidPhoneNumberException, "Invalid Phone Number", ErrorCode::InvalidInput)
+class InvalidPhoneNumberException : public std::exception
+{
+public:
+    explicit InvalidPhoneNumberException(const std::string &msg) : message(msg) {}
+    const char *what() const noexcept override
+    {
+        return message.c_str();
+    }
+
+private:
+    std::string message;
+};
 
 class PhoneNumberValidator
 {
@@ -75,22 +82,37 @@ private:
     }
 };
 
-class PhoneNumber
+int main()
 {
-public:
-    PhoneNumber(const std::string &phoneNumber)
+    try
     {
-        PhoneNumberValidator::validate(phoneNumber);
-        m_phoneNumber = phoneNumber;
+        PhoneNumberValidator::validate("+1 1234567890");
+        std::cout << "Numéro valide!" << std::endl;
+    }
+    catch (const InvalidPhoneNumberException &e)
+    {
+        std::cout << "Erreur : " << e.what() << std::endl;
     }
 
-    const std::string &getPhoneNumber() const
+    try
     {
-        return m_phoneNumber;
+        PhoneNumberValidator::validate("+33 612345678");
+        std::cout << "Numéro valide!" << std::endl;
+    }
+    catch (const InvalidPhoneNumberException &e)
+    {
+        std::cout << "Erreur : " << e.what() << std::endl;
     }
 
-private:
-    std::string m_phoneNumber;
-};
+    try
+    {
+        PhoneNumberValidator::validate("+44 7912345678");
+        std::cout << "Numéro valide!" << std::endl;
+    }
+    catch (const InvalidPhoneNumberException &e)
+    {
+        std::cout << "Erreur : " << e.what() << std::endl;
+    }
 
-#endif
+    return 0;
+}

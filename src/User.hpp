@@ -18,12 +18,15 @@ public:
          const std::shared_ptr<Password> password)
         : m_fullname(fullname), m_email(email), m_phone(phone), m_password(password) {}
 
+    int m_id{};
     std::weak_ptr<FullName> m_fullname;
     std::weak_ptr<Email> m_email;
     std::weak_ptr<PhoneNumber> m_phone;
     std::weak_ptr<Password> m_password;
 
     friend std::ostream &operator<<(std::ostream &os, const User &user);
+
+    const int getId() const { return m_id; }
 
     const std::string &getFullName() const
     {

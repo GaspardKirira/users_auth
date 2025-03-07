@@ -3,7 +3,6 @@
 
 #include <string>
 #include <Adastra/Exception.hpp>
-#include <regex>
 #include <iostream>
 
 ADASTRA_EXCEPTION(InvalidEmailException, "Email invalid", ErrorCode::InvalidInput);
@@ -18,41 +17,83 @@ public:
             throw InvalidEmailException("L'email ne peut pas être vide.");
         }
 
-        if (!isValidFormat(email))
+        if (!isValidFormat(email.c_str())) // Changer l'argument pour un const char*
         {
             throw InvalidEmailException("L'email est invalide. Il doit respecter le format 'utilisateur@domaine.extension'.");
         }
 
-        if (!isValidDomain(email))
+        if (!isValidDomain(email.c_str())) // Changer l'argument pour un const char*
         {
             throw InvalidEmailException("Le domaine de l'email n'est pas valide.");
         }
     }
 
 private:
-    static bool isValidFormat(const std::string &email)
+    static bool isValidFormat(const char *email) // Utilisation de const char* au lieu de std::string
     {
-        // Regex pour valider le format général d'un email
+        // La fonction de validation du format reste non-constexpr, car elle utilise std::regex
         static const std::regex pattern(R"(^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$)");
         return std::regex_match(email, pattern);
     }
 
-    static bool isValidDomain(const std::string &email)
+    static constexpr bool isValidDomain(const char *email) // Maintenant, la fonction est constexpr
     {
-        // On vérifie la présence du domaine après le '@'
-        size_t atPos = email.find('@');
+        size_t atPos = findAtPosition(email);
         if (atPos != std::string::npos)
         {
-            std::string domain = email.substr(atPos + 1);
+            const char *domain = email + atPos + 1;
 
-            // Vérification qu'il n'y a pas de double point ".." dans le domaine
-            if (domain.find("..") != std::string::npos)
+            if (containsConsecutiveDots(domain))
             {
-                return false; // Domaine invalide si ".." est trouvé
+                return false;
             }
 
-            // Le domaine doit avoir une extension valide (par exemple ".com", ".org", etc.)
-            return domain.find('.') != std::string::npos;
+            return containsDot(domain);
+        }
+        return false;
+    }
+
+    // Fonction helper constexpr pour trouver la position de '@'
+    static constexpr size_t findAtPosition(const char *str)
+    {
+        size_t pos = 0;
+        while (str[pos] != '\0')
+        {
+            if (str[pos] == '@')
+            {
+                return pos;
+            }
+            ++pos;
+        }
+        return -1; // Retourne une valeur invalid si '@' n'est pas trouvé
+    }
+
+    // Fonction constexpr pour vérifier la présence de deux points consécutifs
+    static constexpr bool containsConsecutiveDots(const char *str)
+    {
+        size_t i = 0;
+        while (str[i] != '\0')
+        {
+            if (str[i] == '.' && str[i + 1] == '.')
+            {
+                return true;
+            }
+            ++i;
+        }
+        return false;
+    }
+
+    // Fonction constexpr pour vérifier la présence d'un point
+    static constexpr bool containsDot(const char *str)
+    {
+        size_t i = 0;
+        while (str[i] != '\0')
+        {
+            if (str[i] == '.')
+            {
+                return true;
+            }
+            ++i;
         }
         return false;
     }
@@ -63,7 +104,6 @@ class Email
 public:
     Email(const std::string &email) : m_email(email)
     {
-        // Valide l'email au moment de la création de l'objet
         EmailValidator::validate(email);
     }
 

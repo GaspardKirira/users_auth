@@ -2,14 +2,11 @@
 #define FULLNAME_HPP
 
 #include <string>
+#include <Adastra/validator.hpp>
 #include <Adastra/Exception.hpp>
 #include <regex>
 
 ADASTRA_EXCEPTION(InvalidFullNameException, "Invalid FullName", ErrorCode::InvalidInput)
-
-#include <string>
-#include <regex>
-#include <iostream>
 
 class FullNameValidator
 {
