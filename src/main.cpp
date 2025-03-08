@@ -4,6 +4,7 @@
 #include <Adastra/Exception.hpp>
 #include "crow.h"
 #include "UserRepository.hpp"
+#include "crow/middlewares/cors.h"
 
 bool validateUserJson(const crow::request &req)
 {
@@ -17,9 +18,24 @@ bool validateUserJson(const crow::request &req)
     return true;
 }
 
+void addCorsHeaders(crow::response &res)
+{
+    res.set_header("Access-Control-Allow-Origin", "*");
+    res.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    res.set_header("Access-Control-Allow-Headers", "Content-Type");
+    res.set_header("Access-Control-Allow-Credentials", "true");
+}
+
 int main()
 {
-    crow::SimpleApp app;
+    crow::App<crow::CORSHandler> app;
+
+    auto &cors = app.get_middleware<crow::CORSHandler>();
+    cors
+        .global()
+        .headers("Content-Type", "Authorization")
+        .methods("GET"_method, "POST"_method, "PUT"_method, "DELETE"_method, "OPTIONS"_method)
+        .max_age(86400);
 
     try
     {
@@ -33,9 +49,9 @@ int main()
                     auto json_data = crow::json::load(req.body);
                     if (!json_data)
                     {
-                        crow::json::wvalue res;
-                        res["message"] = "Invalid JSON format";
-                        return crow::response(501, res);
+                        crow::json::wvalue res_json;
+                        res_json["message"] = "Invalid JSON format";
+                        return crow::response(501, res_json);
                     }
 
                     if (!validateUserJson(req))
@@ -78,6 +94,7 @@ int main()
                         {
                             std::vector<crow::json::wvalue> users;
                             users.reserve(100);
+
                             for (const auto &user : result)
                             {
                                 crow::json::wvalue user_json;
@@ -96,15 +113,16 @@ int main()
 
                                 users.emplace_back(std::move(user_json));
                             }
-                            crow::json::wvalue res;
-                            res["users"] = std::move(users);
-                            return crow::response(200, res);
+                            crow::json::wvalue res_json;
+                            res_json["message"] = "Utilisateurs récupérés avec succès.";
+                            res_json["users"] = std::move(users);
+                            return crow::response(200, res_json);
                         }
                         else
                         {
-                            crow::json::wvalue res;
-                            res["message"] = "Pas d'utilisateurs";
-                            return crow::response(200, res);
+                            crow::json::wvalue res_json;
+                            res_json["message"] = "Pas d'utilisateurs";
+                            return crow::response(200, res_json);
                         }
                     }
                     catch (const std::exception &e)
@@ -145,7 +163,7 @@ int main()
                     catch (const std::exception &e)
                     {
                         crow::json::wvalue res_json;
-                        res_json["message"] = std::string(e.what());
+                        res_json["message"] = "Erreur interne du serveur: " + std::string(e.what());
                         return crow::response(400, res_json);
                     }
                 });
@@ -158,9 +176,9 @@ int main()
 
                     if (!json_data)
                     {
-                        crow::json::wvalue res;
-                        res["message"] = "Invalid JSON format";
-                        return crow::response(501, res);
+                        crow::json::wvalue res_json;
+                        res_json["message"] = "Invalid JSON format";
+                        return crow::response(501, res_json);
                     }
 
                     try
@@ -223,9 +241,9 @@ int main()
                     {
                         if (id <= 0)
                         {
-                            crow::json::wvalue res;
-                            res["message"] = "ID utilisateur invalide";
-                            return crow::response(400, res);
+                            crow::json::wvalue res_json;
+                            res_json["message"] = "ID utilisateur invalide";
+                            return crow::response(400, res_json);
                         }
 
                         auto user = userRepository.getUserById(id);
@@ -235,9 +253,9 @@ int main()
                         }
                         else
                         {
-                            crow::json::wvalue res;
-                            res["message"] = "Utilisateur non trouvé";
-                            return crow::response(404, res);
+                            crow::json::wvalue res_json;
+                            res_json["message"] = "Utilisateur non trouvé";
+                            return crow::response(404, res_json);
                         }
 
                         crow::json::wvalue res_json;

@@ -4,6 +4,7 @@
 #include <optional>
 #include <vector>
 #include <Adastra/Database.hpp>
+#include <any>
 #include "User.hpp"
 
 class IDeleteUser
@@ -55,7 +56,7 @@ public:
 
             m_db->remove("users", "id = ?", user.getId());
 
-            auto result = m_db->executePreparedQuery("SELECT COUNT(*) FROM users WHERE id = ?", user.getId());
+            auto result = m_db->executePreparedQuery("SELECT COUNT(*) FROM users WHERE id = ?", std::vector<std::any>{user.getId()});
 
             if (result->next())
             {
@@ -87,7 +88,7 @@ public:
 
     std::optional<User> getUserById(int id) override
     {
-        auto result = m_db->executePreparedQuery("SELECT * FROM users WHERE id = ?", id);
+        auto result = m_db->executePreparedQuery("SELECT * FROM users WHERE id = ?", std::vector<std::any>{std::any(id)});
 
         if (result->next())
         {
@@ -103,6 +104,39 @@ public:
         }
 
         return std::nullopt;
+    }
+
+    std::optional<User> getUserByEmail(const std::string &email)
+    {
+        try
+        {
+            // Exécution de la requête SQL pour récupérer l'utilisateur par son email
+            auto result = m_db->executePreparedQuery("SELECT * FROM users WHERE email = ?", std::vector<std::any>{email});
+
+            // Vérifier si un utilisateur a été trouvé
+            if (result->next())
+            {
+                // Créer un objet utilisateur à partir des données récupérées
+                auto fullname = std::make_shared<FullName>(result->getString("fullname"));
+                auto email = std::make_shared<Email>(result->getString("email"));
+                auto phone = std::make_shared<PhoneNumber>(result->getString("phone"));
+                auto password = std::make_shared<Password>(result->getString("password"));
+
+                User user(fullname, email, phone, password);
+                user.setId(result->getInt("id"));
+
+                // Retourner l'utilisateur trouvé
+                return user;
+            }
+
+            // Aucun utilisateur trouvé, retourner std::nullopt
+            return std::nullopt;
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << "Erreur lors de la récupération de l'utilisateur par email : " << e.what() << std::endl;
+            return std::nullopt;
+        }
     }
 
     std::vector<User> getUsers() override
