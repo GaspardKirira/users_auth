@@ -74,7 +74,6 @@ private:
     }
 };
 
-// Définition de l'expression régulière statique
 const std::regex FullNameValidator::validCharactersRegex("^[a-zA-Zàáâäãåçéèêëíîïóôöõúùûüñ' -]+$");
 
 class FullName
@@ -88,6 +87,12 @@ public:
     const std::string &getFullName() const
     {
         return m_fullname;
+    }
+
+    void setFullName(const std::string &fullname)
+    {
+        FullNameValidator::validate(fullname);
+        m_fullname = fullname;
     }
 
 private:

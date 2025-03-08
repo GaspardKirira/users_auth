@@ -101,6 +101,12 @@ public:
         return m_password;
     }
 
+    void setPassword(const std::string &password)
+    {
+        PasswordValidator::validate(password);
+        m_password = password;
+    }
+
 private:
     std::string m_password;
 };

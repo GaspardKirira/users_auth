@@ -19,54 +19,25 @@ public:
         : m_fullname(fullname), m_email(email), m_phone(phone), m_password(password) {}
 
     int m_id{};
-    std::weak_ptr<FullName> m_fullname;
-    std::weak_ptr<Email> m_email;
-    std::weak_ptr<PhoneNumber> m_phone;
-    std::weak_ptr<Password> m_password;
+    std::shared_ptr<FullName> m_fullname;
+    std::shared_ptr<Email> m_email;
+    std::shared_ptr<PhoneNumber> m_phone;
+    std::shared_ptr<Password> m_password;
 
     friend std::ostream &operator<<(std::ostream &os, const User &user);
 
     const int getId() const { return m_id; }
 
-    const std::string &getFullName() const
-    {
-        if (auto fullname = m_fullname.lock())
-        {
-            return fullname->getFullName();
-        }
-        static std::string empty = "";
-        return empty;
-    }
+    const std::string &getFullName() const { return m_fullname->getFullName(); }
+    const std::string &getEmail() const { return m_email->getEmail(); }
+    const std::string &getPhone() const { return m_phone->getPhoneNumber(); }
+    const std::string &getPassword() const { return m_password->getPassword(); }
 
-    const std::string &getEmail() const
-    {
-        if (auto email = m_email.lock())
-        {
-            return email->getEmail();
-        }
-        static std::string empty = "";
-        return empty;
-    }
-
-    const std::string &getPhone() const
-    {
-        if (auto phone = m_phone.lock())
-        {
-            return phone->getPhoneNumber();
-        }
-        static std::string empty = "";
-        return empty;
-    }
-
-    const std::string &getPassword() const
-    {
-        if (auto password = m_password.lock())
-        {
-            return password->getPassword();
-        }
-        static std::string empty = "";
-        return empty;
-    }
+    void setId(int id) { m_id = id; }
+    void setFullName(const std::string &fullname) { m_fullname = std::make_shared<FullName>(fullname); }
+    void setEmail(const std::string &email) { m_email = std::make_shared<Email>(email); }
+    void setPhone(const std::string &phone) { m_phone = std::make_shared<PhoneNumber>(phone); }
+    void setPassword(const std::string &password) { m_password = std::make_shared<Password>(password); }
 };
 
 std::ostream &operator<<(std::ostream &os, const User &user)

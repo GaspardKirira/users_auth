@@ -17,26 +17,25 @@ public:
             throw InvalidEmailException("L'email ne peut pas être vide.");
         }
 
-        if (!isValidFormat(email.c_str())) // Changer l'argument pour un const char*
+        if (!isValidFormat(email.c_str()))
         {
             throw InvalidEmailException("L'email est invalide. Il doit respecter le format 'utilisateur@domaine.extension'.");
         }
 
-        if (!isValidDomain(email.c_str())) // Changer l'argument pour un const char*
+        if (!isValidDomain(email.c_str()))
         {
             throw InvalidEmailException("Le domaine de l'email n'est pas valide.");
         }
     }
 
 private:
-    static bool isValidFormat(const char *email) // Utilisation de const char* au lieu de std::string
+    static bool isValidFormat(const char *email)
     {
-        // La fonction de validation du format reste non-constexpr, car elle utilise std::regex
         static const std::regex pattern(R"(^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$)");
         return std::regex_match(email, pattern);
     }
 
-    static constexpr bool isValidDomain(const char *email) // Maintenant, la fonction est constexpr
+    static constexpr bool isValidDomain(const char *email)
     {
         size_t atPos = findAtPosition(email);
         if (atPos != std::string::npos)
@@ -53,7 +52,6 @@ private:
         return false;
     }
 
-    // Fonction helper constexpr pour trouver la position de '@'
     static constexpr size_t findAtPosition(const char *str)
     {
         size_t pos = 0;
@@ -65,10 +63,9 @@ private:
             }
             ++pos;
         }
-        return -1; // Retourne une valeur invalid si '@' n'est pas trouvé
+        return -1;
     }
 
-    // Fonction constexpr pour vérifier la présence de deux points consécutifs
     static constexpr bool containsConsecutiveDots(const char *str)
     {
         size_t i = 0;
@@ -83,7 +80,6 @@ private:
         return false;
     }
 
-    // Fonction constexpr pour vérifier la présence d'un point
     static constexpr bool containsDot(const char *str)
     {
         size_t i = 0;
@@ -110,6 +106,12 @@ public:
     const std::string &getEmail() const
     {
         return m_email;
+    }
+
+    void setEmail(const std::string &email)
+    {
+        EmailValidator::validate(email);
+        m_email = email;
     }
 
 private:

@@ -19,7 +19,6 @@ public:
             throw InvalidPhoneNumberException("Le numéro de téléphone ne peut pas être vide.");
         }
 
-        // Nettoyage des espaces une seule fois
         std::string cleanedPhoneNumber = removeSpaces(phoneNumber);
 
         if (!isValidFormat(cleanedPhoneNumber))
@@ -39,7 +38,6 @@ public:
     }
 
 private:
-    // Méthode pour supprimer les espaces d'un numéro
     static std::string removeSpaces(const std::string &phoneNumber)
     {
         std::string cleanedPhoneNumber = phoneNumber;
@@ -66,27 +64,34 @@ private:
     {
         if (phoneNumber[0] == '+')
         {
-            std::string cleanedPhoneNumber = phoneNumber.substr(1); // Supprimer le "+"
+            std::string cleanedPhoneNumber = phoneNumber.substr(1);
 
-            // Vérifier la longueur totale du numéro (excluant le "+")
-            return cleanedPhoneNumber.length() >= 8 && cleanedPhoneNumber.length() <= 15;
+            if (cleanedPhoneNumber.length() < 8 || cleanedPhoneNumber.length() > 15)
+            {
+                return false;
+            }
         }
-        return false;
+        return true;
     }
 };
 
 class PhoneNumber
 {
 public:
-    PhoneNumber(const std::string &phoneNumber)
+    PhoneNumber(const std::string &phoneNumber) : m_phoneNumber(phoneNumber)
     {
         PhoneNumberValidator::validate(phoneNumber);
-        m_phoneNumber = phoneNumber;
     }
 
     const std::string &getPhoneNumber() const
     {
         return m_phoneNumber;
+    }
+
+    void setPhoneNumber(const std::string &phoneNumber)
+    {
+        PhoneNumberValidator::validate(phoneNumber);
+        m_phoneNumber = phoneNumber;
     }
 
 private:
