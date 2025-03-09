@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uploader plusieurs fichiers</title>
+</head>
+<body>
+    <h1>Uploader plusieurs fichiers</h1>
+    
+    <form id="uploadForm" enctype="multipart/form-data">
+        <label for="fileInput">Sélectionner des fichiers:</label>
+        <input type="file" id="fileInput" name="InputFile" multiple required />
+        <br><br>
+        <button type="submit">Télécharger</button>
+    </form>
+
+    <p id="responseMessage"></p>
+
+    <script>
+        // Gestion de l'événement de soumission du formulaire
+        document.getElementById("uploadForm").addEventListener("submit", function(event) {
+            event.preventDefault(); // Empêche le rechargement de la page
+
+            const formData = new FormData();
+            const fileInput = document.getElementById("fileInput");
+
+            // Ajoute tous les fichiers au FormData
+            for (const file of fileInput.files) {
+                formData.append("InputFile", file);
+            }
+
+            // Effectuer une requête POST avec les fichiers
+            fetch("http://localhost:18080/uploadfile", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    document.getElementById("responseMessage").innerText = "Fichiers téléchargés avec succès!";
+                } else {
+                    document.getElementById("responseMessage").innerText = "Erreur lors du téléchargement des fichiers.";
+                }
+            })
+            .catch(error => {
+                document.getElementById("responseMessage").innerText = "Erreur de connexion au serveur.";
+            });
+        });
+    </script>
+</body>
+</html>
